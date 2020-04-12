@@ -49,25 +49,28 @@ To run:
     once an hour or so but that's about it!
 
 """
-import pyautogui, sys
+import pyautogui as auto, sys
 import sys
 import random
 import time
 import threading
 
-# We assume that we are taking in 4 super combat pots, in the first row
-SUPER_CMB_POTS = [
+# We assume that we are taking in 5 super combat pots, 
+# in the first row/left first spot of second
+POTS = [
     {'coords':[582, 302], 'doses': 4},
     {'coords': [624, 302], 'doses': 4},
     {'coords': [666, 302], 'doses': 4},
     {'coords': [708, 302], 'doses': 4},
     {'coords': [584, 342], 'doses': 4}
 ]
+
 # Placeholder to remember the reset HP place.
 RESET_HP_CENTER = [719, 338]
 
 class NmzBot(object):
-  """Main Bot Thread for handling drinking potion events.
+  """
+  Main Bot Thread for handling drinking potion events.
 
   Attributes:
     timer (obj): Timer thread object
@@ -95,58 +98,45 @@ class NmzBot(object):
     if not self.is_running:
       # For range/mage use super pots
       self.next_call += random.randint(850, 910)	
+      
       # For melee: drink super combat at an interval of about ~17/18 mins
       # self.next_call += random.randint(950, 970)
-      # For normal combats, every 7-8 min
-      # self.next_call += random.randint(480, 540)  
+      
       self._timer = threading.Timer(self.next_call - time.time(), self._run)
       self._timer.daemon = True # Program will end on keyboard input
       self._timer.start()
       self.is_running = True
 
   def click_inventory_icon(self):
-    x = random.randint(640, 660)
-    y = random.randint(248, 264)
-    pyautogui.moveTo(x, y, 0.5)
-    pyautogui.click()
+    # x, y (All these coords are the "center" of the icon)
+    auto.moveTo(random.randint(640, 660), random.randint(248, 264), 0.5)
+    auto.click()
 
   def click_prayer_icon(self):
-    x = random.randint(710, 716)
-    y = random.randint(248, 264)
-    pyautogui.moveTo(x, y, 0.5)
-    pyautogui.click()
+    # Clicks the pray icon for prayer tab
+    auto.moveTo(random.randint(710, 716), random.randint(248, 264), 0.5)
+    auto.click()
 
     # Move back to the hp prayer icon
-    init_reset_hp_x = random.randint(712, 726)
-    init_reset_hp_y = random.randint(330, 345)
-    pyautogui.moveTo(init_reset_hp_x, init_reset_hp_y, 0.5)
+    auto.moveTo(random.randint(712, 726), random.randint(330, 345), 0.5)
 
   def drink_super_combat(self):
-    for i in range(len(SUPER_CMB_POTS)):
-        if SUPER_CMB_POTS[i]['doses'] > 0:
-            x_center = SUPER_CMB_POTS[i]['coords'][0]
-            y_center = SUPER_CMB_POTS[i]['coords'][1]
-
-            x_coord = random.randint(x_center-4, x_center+4)
-            y_coord = random.randint(y_center-4, y_center+5)
-
-            SUPER_CMB_POTS[i]['doses'] -= 1
-
-            pyautogui.moveTo(x_coord, y_coord, 0.5)
-            pyautogui.click()
-            break
+    for pot in POTS:
+      # If still doses in this pot, drink. If not check next
+      if pot['doses'] > 0:
+        x, y = pot['coords'][0], pot['coords'][1]
+        auto.moveTo(random.randint(x-4, x+4), random.randint(y-4, y+5), 0.5)
+        auto.click()
+        pot['doses'] -= 1
+        break
 
 
 def main():
     print('Press Ctrl-C to quit.')
 
     # Initial reset of HP to start program
-    init_reset_hp_x = random.randint(714, 724)
-    init_reset_hp_y = random.randint(332, 342)
-    init_click_interval = random.uniform(0.5, 0.6)
-
-    pyautogui.moveTo(init_reset_hp_x, init_reset_hp_y, 0.5)
-    pyautogui.click(clicks=2, interval=init_click_interval)
+    auto.moveTo(random.randint(714, 724), random.randint(332, 342), 0.5)
+    auto.click(clicks=2, interval=random.uniform(0.5, 0.6))
 
     # The bot class handles drinking super combat pots (And absoprtions, if specified)
     bot = NmzBot()
@@ -159,14 +149,9 @@ def main():
             sleep_time = random.randint(45, 54)
             time.sleep(sleep_time)
             
-            # Get coords
-            reset_hp_x = random.randint(714, 724)
-            reset_hp_y = random.randint(332, 342)
-            click_interval = random.uniform(0.3, 0.5)
-
             # Click the hp prayer on and off
-            pyautogui.moveTo(reset_hp_x, reset_hp_y, 0.5)
-            pyautogui.click(clicks=2, interval=click_interval)
+            auto.moveTo(random.randint(714, 724), random.randint(332, 342), 0.5)
+            auto.click(clicks=2, interval=random.uniform(0.3, 0.5))
 
     except (KeyboardInterrupt, SystemExit):
         sys.exit(0)
