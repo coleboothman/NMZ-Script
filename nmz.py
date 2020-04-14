@@ -58,15 +58,28 @@ import threading
 # We assume that we are taking in 5 super combat pots, 
 # in the first row/left first spot of second
 POTS = [
-    {'coords':[582, 302], 'doses': 4},
-    {'coords': [624, 302], 'doses': 4},
-    {'coords': [666, 302], 'doses': 4},
-    {'coords': [708, 302], 'doses': 4},
-    {'coords': [584, 342], 'doses': 4}
+    {'coords':[582, 451], 'doses': 4},
+    {'coords': [624, 451], 'doses': 4},
+    {'coords': [666, 451], 'doses': 4},
+    {'coords': [708, 451], 'doses': 4},
+    {'coords': [584, 491], 'doses': 4}
 ]
 
-# Placeholder to remember the reset HP place.
-RESET_HP_CENTER = [719, 338]
+# Use the prayer orb
+HP_X = [550, 567]
+HP_Y = [305, 315]
+
+# FOR FINDING COORDS ON SCREEN 
+# try:
+#     while True:
+#         x, y = auto.position()
+#         positionStr = 'X: ' + str(x).rjust(4) + ' Y: ' + str(y).rjust(4)
+#         print(positionStr),
+#         print('\b' * (len(positionStr) + 2)),
+#         sys.stdout.flush()
+# except KeyboardInterrupt:
+#     print('\n')
+
 
 class NmzBot(object):
   """
@@ -76,7 +89,6 @@ class NmzBot(object):
     timer (obj): Timer thread object
     is_running (bool): Boolean for checking if timer thread is running.
     next_call(int): Current time when started the thread
-
   """
 
   def __init__(self):
@@ -89,9 +101,7 @@ class NmzBot(object):
 
   def _run(self):
     self.is_running = False
-    self.click_inventory_icon()
     self.drink_super_combat()	
-    self.click_prayer_icon()
     self.start()
     
   def start(self):
@@ -107,19 +117,6 @@ class NmzBot(object):
       self._timer.start()
       self.is_running = True
 
-  def click_inventory_icon(self):
-    # x, y (All these coords are the "center" of the icon)
-    auto.moveTo(random.randint(640, 660), random.randint(248, 264), 0.5)
-    auto.click()
-
-  def click_prayer_icon(self):
-    # Clicks the pray icon for prayer tab
-    auto.moveTo(random.randint(710, 716), random.randint(248, 264), 0.5)
-    auto.click()
-
-    # Move back to the hp prayer icon
-    auto.moveTo(random.randint(712, 726), random.randint(330, 345), 0.5)
-
   def drink_super_combat(self):
     for pot in POTS:
       # If still doses in this pot, drink. If not check next
@@ -129,46 +126,37 @@ class NmzBot(object):
         auto.click()
         pot['doses'] -= 1
         break
+    
+    # Move back to prayer orb
+    auto.moveTo(random.randint(HP_X[0], HP_X[1]), random.randint(HP_Y[0], HP_Y[1]), 0.5)
+
+
+def flash_prayorb():
+  # Click the quick prays on and off. Weird behaviour with using the auto.click=(clicks=2)
+  # but below works.
+  auto.moveTo(random.randint(HP_X[0], HP_X[1]), random.randint(HP_Y[0], HP_Y[1]), 0.5)
+  auto.click()
+  time.sleep(random.uniform(0.3, 0.6))
+  auto.click()
 
 
 def main():
-    print('Press Ctrl-C to quit.')
+  print('Press Ctrl-C to quit.')
+  
+  # Initial reset of HP to start program
+  flash_prayorb()
+  # The bot class handles drinking super combat pots (And absoprtions, if specified)
+  bot = NmzBot()
+  bot._run()
 
-    # Initial reset of HP to start program
-    auto.moveTo(random.randint(714, 724), random.randint(332, 342), 0.5)
-    auto.click(clicks=2, interval=random.uniform(0.5, 0.6))
-
-    # The bot class handles drinking super combat pots (And absoprtions, if specified)
-    bot = NmzBot()
-    bot._run()
-
-    try:
-        while True:
-            # The HP reset is every minute, so we click at intervals randomly 
-            # between 45-53 seconds.
-            sleep_time = random.randint(45, 54)
-            time.sleep(sleep_time)
-            
-            # Click the hp prayer on and off
-            auto.moveTo(random.randint(714, 724), random.randint(332, 342), 0.5)
-            auto.click(clicks=2, interval=random.uniform(0.3, 0.5))
-
-    except (KeyboardInterrupt, SystemExit):
-        sys.exit(0)
+  try:
+      while True:
+          # hp resets every min, so we reset every 45-50 seconds.
+          time.sleep(random.randint(45, 50))
+          flash_prayorb()
+  except (KeyboardInterrupt, SystemExit):
+      sys.exit(0)
 
 
 if __name__ == "__main__":
 	main()
-    
-    
-# FOR FINDING COORDS ON SCREEN 
-
-# try:
-#     while True:
-#         x, y = pyautogui.position()
-#         positionStr = 'X: ' + str(x).rjust(4) + ' Y: ' + str(y).rjust(4)
-#         print(positionStr),
-#         print('\b' * (len(positionStr) + 2)),
-#         sys.stdout.flush()
-# except KeyboardInterrupt:
-#     print('\n')
